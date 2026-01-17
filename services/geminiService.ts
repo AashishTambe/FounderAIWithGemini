@@ -1,10 +1,19 @@
 import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { AnalysisResult } from "../types";
 
-// Initialize Gemini Client
-// In a real production app with a Node backend, this would happen server-side to protect the key.
-// Since this is a client-side demo request, we use the env variable directly.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+/**
+ * Helper to retrieve API key safely
+ */
+const getApiKey = (): string => {
+  try {
+    if (typeof process !== "undefined" && process.env && process.env.API_KEY) {
+      return process.env.API_KEY;
+    }
+  } catch (e) {
+    // Ignore reference errors
+  }
+  return "";
+};
 
 /**
  * Helper to convert File to Base64
@@ -32,6 +41,12 @@ export const analyzeStartupPitch = async (
   reportFile: File | null
 ): Promise<AnalysisResult> => {
   
+  const apiKey = getApiKey();
+  if (!apiKey) {
+    throw new Error("Gemini API Key is missing. Please check your environment configuration.");
+  }
+
+  const ai = new GoogleGenAI({ apiKey });
   const modelId = "gemini-2.5-flash-latest"; // Efficient multimodal model
 
   // Define the output schema for structured JSON
@@ -139,6 +154,13 @@ export const analyzeStartupPitch = async (
  * Creates a chat session for negotiation.
  */
 export const createNegotiationSession = (initialContext: string) => {
+  const apiKey = getApiKey();
+  if (!apiKey) {
+    throw new Error("Gemini API Key is missing. Please check your environment configuration.");
+  }
+  
+  const ai = new GoogleGenAI({ apiKey });
+  
   const chat = ai.chats.create({
     model: 'gemini-3-flash-preview', // High reasoning capability for negotiation
     config: {
