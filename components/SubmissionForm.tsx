@@ -33,9 +33,15 @@ export const SubmissionForm: React.FC<SubmissionFormProps> = ({ onSubmit, isProc
     setDragActiveVideo(false);
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const file = e.dataTransfer.files[0];
-      if (file.type.startsWith('video/')) {
-        setVideo(file);
+      if (!file.type.startsWith('video/')) {
+        alert('Please upload a video file');
+        return;
       }
+      if (file.size > MAX_VIDEO_SIZE) {
+        alert(`Video file is too large. Maximum size is ${MAX_VIDEO_SIZE / (1024 * 1024)}MB`);
+        return;
+      }
+      setVideo(file);
     }
   };
 
@@ -45,22 +51,44 @@ export const SubmissionForm: React.FC<SubmissionFormProps> = ({ onSubmit, isProc
     setDragActivePdf(false);
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const file = e.dataTransfer.files[0];
-      if (file.type === 'application/pdf') {
-        setPdfFile(file);
+      if (file.type !== 'application/pdf') {
+        alert('Please upload a PDF file');
+        return;
       }
+      if (file.size > MAX_PDF_SIZE) {
+        alert(`PDF file is too large. Maximum size is ${MAX_PDF_SIZE / (1024 * 1024)}MB`);
+        return;
+      }
+      setPdfFile(file);
     }
   };
+
+  // File size limits (in bytes)
+  const MAX_VIDEO_SIZE = 20 * 1024 * 1024; // 20MB
+  const MAX_PDF_SIZE = 10 * 1024 * 1024; // 10MB
 
   // File input handlers
   const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setVideo(e.target.files[0]);
+      const file = e.target.files[0];
+      if (file.size > MAX_VIDEO_SIZE) {
+        alert(`Video file is too large. Maximum size is ${MAX_VIDEO_SIZE / (1024 * 1024)}MB`);
+        e.target.value = '';
+        return;
+      }
+      setVideo(file);
     }
   };
 
   const handlePdfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setPdfFile(e.target.files[0]);
+      const file = e.target.files[0];
+      if (file.size > MAX_PDF_SIZE) {
+        alert(`PDF file is too large. Maximum size is ${MAX_PDF_SIZE / (1024 * 1024)}MB`);
+        e.target.value = '';
+        return;
+      }
+      setPdfFile(file);
     }
   };
 
@@ -87,9 +115,12 @@ export const SubmissionForm: React.FC<SubmissionFormProps> = ({ onSubmit, isProc
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Video Upload Zone */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
-                <Video className="w-4 h-4 text-emerald-400" />
-                Pitch Video (Optional)
+              <label className="text-sm font-medium text-slate-300 flex items-center justify-between">
+                <span className="flex items-center gap-2">
+                  <Video className="w-4 h-4 text-emerald-400" />
+                  Pitch Video (Optional)
+                </span>
+                <span className="text-xs text-slate-500">Max: 20MB</span>
               </label>
               <div 
                 className={`relative group h-48 border-2 border-dashed rounded-xl p-4 transition-all duration-300 text-center cursor-pointer flex flex-col items-center justify-center
@@ -137,9 +168,12 @@ export const SubmissionForm: React.FC<SubmissionFormProps> = ({ onSubmit, isProc
 
             {/* PDF Upload Zone */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
-                <FileIcon className="w-4 h-4 text-emerald-400" />
-                Report / Deck (PDF)
+              <label className="text-sm font-medium text-slate-300 flex items-center justify-between">
+                <span className="flex items-center gap-2">
+                  <FileIcon className="w-4 h-4 text-emerald-400" />
+                  Report / Deck (PDF)
+                </span>
+                <span className="text-xs text-slate-500">Max: 10MB</span>
               </label>
               <div 
                 className={`relative group h-48 border-2 border-dashed rounded-xl p-4 transition-all duration-300 text-center cursor-pointer flex flex-col items-center justify-center
@@ -240,7 +274,7 @@ export const SubmissionForm: React.FC<SubmissionFormProps> = ({ onSubmit, isProc
           <div className="flex items-start gap-2 text-xs text-slate-500 bg-slate-900/30 p-3 rounded-lg border border-slate-800">
             <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
             <p>
-              Files are processed in-browser. For this demo, try to keep PDFs under 10MB and Videos under 20MB.
+              Files are processed in-browser. Maximum file sizes: Videos 20MB, PDFs 10MB.
             </p>
           </div>
         </form>
